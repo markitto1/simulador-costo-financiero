@@ -1,1 +1,153 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Simulador CF</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;background:#f0f4f8;padding:18px 14px 40px;color:#1a2535}h1{text-align:center;font-size:1.25rem;margin-bottom:4px}.sub{text-align:center;color:#5a6a7e;font-size:.83rem;margin-bottom:18px}.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}.card-title{font-size:.75rem;font-weight:bold;color:#3b5bdb;text-transform:uppercase;margin-bottom:14px}.field{margin-bottom:13px}.field label{display:block;font-size:.75rem;font-weight:bold;color:#5a6a7e;text-transform:uppercase;margin-bottom:4px}.hint{font-size:.7rem;color:#a0b0c4;margin-top:3px}.irow{display:flex;align-items:stretch}.fix{background:#eef0f5;padding:0 10px;display:flex;align-items:center;font-weight:bold;color:#7a8aaa;font-size:.9rem;border:2px solid #dde2ec;flex-shrink:0}.fix.l{border-right:none;border-radius:8px 0 0 8px}.fix.r{border-left:none;border-radius:0 8px 8px 0}input[type=text]{height:46px;padding:0 12px;border:2px solid #dde2ec;font-size:1.05rem;font-weight:bold;color:#1a2535;background:#f8fafc;-webkit-appearance:none;border-radius:8px;width:100%}.irow input[type=text]{border-radius:0;flex:1;min-width:0}input[type=text]:focus{outline:none;border-color:#3b5bdb;background:#fff}.btn{display:block;width:100%;padding:15px;margin-top:16px;background:#3b5bdb;color:#fff;font-size:1rem;font-weight:bold;text-align:center;border-radius:10px;text-decoration:none;cursor:pointer}.btn:active{background:#2f4bbb}.alert{display:none;margin-top:12px;padding:11px 14px;background:#fff5f5;border:1px solid #f5c6c6;color:#c0392b;border-radius:8px;font-size:.83rem}.boxes{display:flex;gap:8px;margin-bottom:16px}.box{flex:1;border-radius:12px;padding:12px 6px;text-align:center}.bl{font-size:.6rem;font-weight:bold;text-transform:uppercase;opacity:.7;margin-bottom:5px}.bv{font-size:.95rem;font-weight:800}.bs{font-size:.62rem;opacity:.65;margin-top:3px}.box-blue{background:#eef2ff;color:#3b5bdb}.box-red{background:#fff0f0;color:#e03131}.box-green{background:#ebfbee;color:#2f9e44}.twrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:380px}th{background:#f0f4f8;color:#5a6a7e;font-size:.65rem;font-weight:bold;text-transform:uppercase;padding:7px 9px;text-align:right}th:first-child{text-align:center}td{padding:7px 9px;text-align:right;border-bottom:1px solid #f0f4f8}td:first-child{text-align:center;font-weight:bold;color:#3b5bdb}tfoot td{font-weight:bold;background:#f8fafc;border-top:2px solid #e2e8f0}.r{color:#e03131}.g{color:#2f9e44}.formula{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px 13px;margin-top:14px;font-size:.73rem;color:#5a6a7e;line-height:1.7}.formula b{color:#3b5bdb}#resultado{display:none}</style></head><body><h1>Simulador de Costo Financiero</h1><p class="sub">Ingresa los 4 datos y presiona Calcular</p><div class="card"><div class="card-title">Parametros</div><div class="field"><label>Valor del Cupon</label><div class="irow"><span class="fix l">$</span><input type="text" id="vc" inputmode="decimal" placeholder="10000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/></div><div class="hint">Monto total de la venta</div></div><div class="field"><label>Cantidad de Cuotas</label><input type="text" id="cu" inputmode="numeric" placeholder="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/><div class="hint">Numero de cuotas</div></div><div class="field"><label>TNA Aplicada</label><div class="irow"><input type="text" id="tn" inputmode="decimal" placeholder="45" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/><span class="fix r">%</span></div><div class="hint">Tasa Nominal Anual</div></div><div class="field"><label>Dias de Acreditacion</label><div class="irow"><input type="text" id="da" inputmode="numeric" placeholder="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/><span class="fix r">dias</span></div><div class="hint">Dias hasta acreditacion</div></div><a class="btn" href="javascript:calcular()">Calcular costo financiero</a><div class="alert" id="alerta">Completa todos los campos con valores validos.</div></div><div id="resultado"><div class="boxes"><div class="box box-blue"><div class="bl">Cupon</div><div class="bv" id="r-cupon">-</div><div class="bs">Total</div></div><div class="box box-red"><div class="bl">Costo</div><div class="bv" id="r-costo">-</div><div class="bs" id="r-cpct">-</div></div><div class="box box-green"><div class="bl">Neto</div><div class="bv" id="r-neto">-</div><div class="bs" id="r-npct">-</div></div></div><div class="card"><div class="card-title">Detalle por cuota</div><div class="twrap"><table><thead><tr><th>Cuota</th><th>Venc.</th><th>Dias</th><th>Valor</th><th>CF</th><th>Neto</th></tr></thead><tbody id="tbody"></tbody><tfoot id="tfoot"></tfoot></table></div><div class="formula"><b>Formula:</b> CF(i)=(V/N)x(TNA/365)xmax(0,30i-D)</div></div></div><script>function fmtP(n){var p=n.toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');return '$'+p[0]+','+p[1];}function leer(id){return parseFloat(document.getElementById(id).value.trim().replace(',','.'));}function leerInt(id){return parseInt(document.getElementById(id).value.trim(),10);}function calcular(){var V=leer('vc'),N=leerInt('cu'),TN=leer('tn'),D=leerInt('da');var al=document.getElementById('alerta'),res=document.getElementById('resultado');if(isNaN(V)||V<=0||isNaN(N)||N<1||isNaN(TN)||TN<0||isNaN(D)||D<0){al.style.display='block';res.style.display='none';return;}al.style.display='none';var vc=V/N,d=(TN/100)/365,tc=0,f='';for(var i=1;i<=N;i++){var dv=30*i,da=dv>D?dv-D:0,cf=vc*d*da,nt=vc-cf;tc+=cf;f+='<tr><td>'+i+'</td><td>'+dv+'d</td><td>'+da+'d</td><td>'+fmtP(vc)+'</td><td class="r">'+fmtP(cf)+'</td><td class="g">'+fmtP(nt)+'</td></tr>';}var ne=V-tc;document.getElementById('tbody').innerHTML=f;document.getElementById('tfoot').innerHTML='<tr><td>TOT</td><td></td><td></td><td>'+fmtP(V)+'</td><td class="r">'+fmtP(tc)+'</td><td class="g">'+fmtP(ne)+'</td></tr>';document.getElementById('r-cupon').innerHTML=fmtP(V);document.getElementById('r-costo').innerHTML=fmtP(tc);document.getElementById('r-cpct').innerHTML=((tc/V)*100).toFixed(2)+'%';document.getElementById('r-neto').innerHTML=fmtP(ne);document.getElementById('r-npct').innerHTML=((ne/V)*100).toFixed(2)+'%';res.style.display='block';}</script></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulador CF</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Arial,sans-serif;background:#f0f4f8;padding:18px 14px 40px;color:#1a2535;-webkit-text-size-adjust:100%;}
+    h1{text-align:center;font-size:1.25rem;margin-bottom:4px;}
+    .sub{text-align:center;color:#5a6a7e;font-size:.83rem;margin-bottom:18px;}
+    .tabs{display:-webkit-flex;display:flex;gap:0;background:#e2e8f0;border-radius:12px;padding:4px;margin-bottom:16px;}
+    .tab{-webkit-flex:1;flex:1;text-align:center;padding:10px 6px;font-size:.78rem;font-weight:bold;border-radius:9px;cursor:pointer;color:#5a6a7e;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s;}
+    .tab.active{background:#fff;color:#3b5bdb;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+    .panel{display:none;}
+    .panel.active{display:block;}
+    .card{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+    .card-title{font-size:.75rem;font-weight:bold;color:#3b5bdb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;}
+    .field{margin-bottom:13px;}
+    .field label{display:block;font-size:.75rem;font-weight:bold;color:#5a6a7e;text-transform:uppercase;margin-bottom:4px;}
+    .field .hint{font-size:.7rem;color:#a0b0c4;margin-top:3px;}
+    .irow{display:-webkit-flex;display:flex;-webkit-align-items:stretch;align-items:stretch;}
+    .fix{background:#eef0f5;padding:0 10px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;font-weight:bold;color:#7a8aaa;font-size:.9rem;border:2px solid #dde2ec;-webkit-flex-shrink:0;flex-shrink:0;}
+    .fix.l{border-right:none;border-radius:8px 0 0 8px;}
+    .fix.r{border-left:none;border-radius:0 8px 8px 0;}
+    input[type=text]{height:46px;padding:0 12px;border:2px solid #dde2ec;font-size:1.05rem;font-weight:bold;color:#1a2535;background:#f8fafc;-webkit-appearance:none;appearance:none;border-radius:8px;width:100%;}
+    .irow input[type=text]{border-radius:0;-webkit-flex:1;flex:1;min-width:0;}
+    input[type=text]:focus{outline:none;border-color:#3b5bdb;background:#fff;}
+    .btn-calc{display:block;width:100%;padding:15px;margin-top:16px;background:#3b5bdb;color:#fff;font-size:1rem;font-weight:bold;text-align:center;border-radius:10px;text-decoration:none;-webkit-tap-highlight-color:transparent;cursor:pointer;}
+    .btn-calc:active{background:#2f4bbb;}
+    .btn-tna{background:#0ca678;}
+    .btn-tna:active{background:#099268;}
+    .alert{display:none;margin-top:12px;padding:11px 14px;background:#fff5f5;border:1px solid #f5c6c6;color:#c0392b;border-radius:8px;font-size:.83rem;}
+    .boxes{display:-webkit-flex;display:flex;gap:8px;margin-bottom:16px;}
+    .box{-webkit-flex:1;flex:1;border-radius:12px;padding:12px 6px;text-align:center;}
+    .box .bl{font-size:.6rem;font-weight:bold;text-transform:uppercase;opacity:.7;margin-bottom:5px;}
+    .box .bv{font-size:.95rem;font-weight:800;line-height:1.2;}
+    .box .bs{font-size:.62rem;opacity:.65;margin-top:3px;}
+    .box-blue{background:#eef2ff;color:#3b5bdb;}
+    .box-red{background:#fff0f0;color:#e03131;}
+    .box-green{background:#ebfbee;color:#2f9e44;}
+    .box-teal{background:#e6fcf5;color:#0ca678;}
+    .twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:380px;}
+    th{background:#f0f4f8;color:#5a6a7e;font-size:.65rem;font-weight:bold;text-transform:uppercase;padding:7px 9px;text-align:right;}
+    th:first-child{text-align:center;}
+    td{padding:7px 9px;text-align:right;border-bottom:1px solid #f0f4f8;}
+    td:first-child{text-align:center;font-weight:bold;color:#3b5bdb;}
+    tfoot td{font-weight:bold;background:#f8fafc;border-top:2px solid #e2e8f0;}
+    .r{color:#e03131;} .g{color:#2f9e44;}
+    .formula{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px 13px;margin-top:14px;font-size:.73rem;color:#5a6a7e;line-height:1.7;}
+    .formula b{color:#3b5bdb;}
+    .tna-result{display:none;margin-top:16px;}
+    .tna-big{background:#e6fcf5;border-radius:14px;padding:20px;text-align:center;}
+    .tna-label{font-size:.72rem;font-weight:bold;color:#0ca678;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+    .tna-value{font-size:2.4rem;font-weight:900;color:#0ca678;line-height:1;}
+    .tna-sub{font-size:.75rem;color:#5a6a7e;margin-top:8px;}
+    #resultado{display:none;}
+  </style>
+</head>
+<body>
+<h1>&#x1F4B3; Simulador de Costo Financiero</h1>
+<p class="sub">Calculadora para cuotas con adelanto bancario</p>
+
+<div class="tabs">
+  <a class="tab active" href="javascript:switchTab('cf')">&#x1F4CA; Calcular CF</a>
+  <a class="tab" href="javascript:switchTab('tna')">&#x1F4C9; Calcular TNA</a>
+</div>
+
+<div class="panel active" id="panel-cf">
+  <div class="card">
+    <div class="card-title">Parametros</div>
+    <div class="field">
+      <label>Valor del Cupon</label>
+      <div class="irow"><span class="fix l">$</span><input type="text" id="vc" inputmode="decimal" placeholder="10000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/></div>
+      <div class="hint">Monto total de la venta</div>
+    </div>
+    <div class="field">
+      <label>Cantidad de Cuotas</label>
+      <input type="text" id="cu" inputmode="numeric" placeholder="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <div class="hint">Numero de cuotas del cliente</div>
+    </div>
+    <div class="field">
+      <label>TNA Aplicada</label>
+      <div class="irow"><input type="text" id="tn" inputmode="decimal" placeholder="45" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/><span class="fix r">%</span></div>
+      <div class="hint">Tasa Nominal Anual del banco</div>
+    </div>
+    <div class="field">
+      <label>Dias de Acreditacion</label>
+      <div class="irow"><input type="text" id="da" inputmode="numeric" placeholder="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/><span class="fix r">dias</span></div>
+      <div class="hint">Dias hasta que el banco te acredita</div>
+    </div>
+    <a class="btn-calc" href="javascript:calcular()">Calcular costo financiero</a>
+    <div class="alert" id="alerta">Completa todos los campos con valores validos.</div>
+  </div>
+  <div id="resultado">
+    <div class="boxes">
+      <div class="box box-blue"><div class="bl">Cupon</div><div class="bv" id="r-cupon">-</div><div class="bs">Total venta</div></div>
+      <div class="box box-red"><div class="bl">Costo CF</div><div class="bv" id="r-costo">-</div><div class="bs" id="r-cpct">-</div></div>
+      <div class="box box-green"><div class="bl">Neto</div><div class="bv" id="r-neto">-</div><div class="bs" id="r-npct">-</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Detalle por cuota</div>
+      <div class="twrap"><table><thead><tr><th>Cuota</th><th>Vencim.</th><th>Dias antic.</th><th>Valor cuota</th><th>Costo CF</th><th>Neto cuota</th></tr></thead><tbody id="tbody"></tbody><tfoot id="tfoot"></tfoot></table></div>
+      <div class="formula"><b>Formula por cuota:</b><br>Costo(i) = (Valor / N) x (TNA / 365) x max(0, 30xi - dias_acreditacion)</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="panel-tna">
+  <div class="card">
+    <div class="card-title">Parametros</div>
+    <div class="field">
+      <label>Tasa de Costo Financiero</label>
+      <div class="irow"><input type="text" id="tcf" inputmode="decimal" placeholder="3.5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/><span class="fix r">%</span></div>
+      <div class="hint">Porcentaje total que cobra el banco sobre el cupon</div>
+    </div>
+    <div class="field">
+      <label>Cantidad de Cuotas</label>
+      <input type="text" id="cu2" inputmode="numeric" placeholder="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <div class="hint">Numero de cuotas del cliente</div>
+    </div>
+    <div class="field">
+      <label>Dias de Acreditacion</label>
+      <div class="irow"><input type="text" id="da2" inputmode="numeric" placeholder="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/><span class="fix r">dias</span></div>
+      <div class="hint">Dias hasta que el banco te acredita</div>
+    </div>
+    <a class="btn-calc btn-tna" href="javascript:calcularTNA()">Calcular TNA equivalente</a>
+    <div class="alert" id="alerta2">Completa todos los campos con valores validos.</div>
+  </div>
+  <div class="tna-result" id="tna-result">
+    <div class="tna-big">
+      <div class="tna-label">TNA Equivalente</div>
+      <div class="tna-value" id="tna-value">-</div>
+      <div class="tna-sub" id="tna-sub">-</div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">Como se calcula</div>
+      <div class="formula"><b>Tasa CF</b> = CF total / Valor cupon<br><b>CF total</b> = &Sigma; (Valor/N) &times; (TNA/365) &times; max(0, 30&times;i &minus; D)<br><br>Despejando TNA:<br><b>TNA = Tasa CF% &times; N &times; 365 / &Sigma; max(0, 30&times;i &minus; D)</b></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(t){document.querySelectorAll('.tab').forEach(function(el){el.classList.remove('active');});document.querySelectorAll('.panel').forEach(function(el){el.classList.remove('active');});document.getElementById('panel-'+t).classList.add('active');var tabs=document.querySelectorAll('.tab');if(t==='cf')tabs[0].classList.add('active');else tabs[1].classList.add('active');}
+function fmtP(n){var p=n.toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');return '$ '+p[0]+','+p[1];}
+function leer(id){return parseFloat(document.getElementById(id).value.trim().replace(',','.'));}
+function leerInt(id){return parseInt(document.getElementById(id).value.trim(),10);}
+function calcular(){var V=leer('vc'),N=leerInt('cu'),TN=leer('tn'),D=leerInt('da');var alerta=document.getElementById('alerta'),res=document.getElementById('resultado');if(isNaN(V)||V<=0||isNaN(N)||N<1||isNaN(TN)||TN<0||isNaN(D)||D<0){alerta.style.display='block';res.style.display='none';return;}alerta.style.display='none';var vc=V/N,diaria=(TN/100)/365,totalCF=0,filas='';for(var i=1;i<=N;i++){var dv=30*i,da=(dv>D?dv-D:0),cf=vc*diaria*da,nt=vc-cf;totalCF+=cf;filas+='<tr><td>'+i+'</td><td>'+dv+'d</td><td>'+da+'d</td><td>'+fmtP(vc)+'</td><td class="r">'+fmtP(cf)+'</td><td class="g">'+fmtP(nt)+'</td></tr>';}var neto=V-totalCF;document.getElementById('tbody').innerHTML=filas;document.getElementById('tfoot').innerHTML='<tr><td>TOTAL</td><td></td><td></td><td>'+fmtP(V)+'</td><td class="r">'+fmtP(totalCF)+'</td><td class="g">'+fmtP(neto)+'</td></tr>';document.getElementById('r-cupon').innerHTML=fmtP(V);document.getElementById('r-costo').innerHTML=fmtP(totalCF);document.getElementById('r-cpct').innerHTML=((totalCF/V)*100).toFixed(2)+'% del total';document.getElementById('r-neto').innerHTML=fmtP(neto);document.getElementById('r-npct').innerHTML=((neto/V)*100).toFixed(2)+'% del total';res.style.display='block';}
+function calcularTNA(){var TCF=leer('tcf'),N=leerInt('cu2'),D=leerInt('da2');var alerta=document.getElementById('alerta2'),res=document.getElementById('tna-result');if(isNaN(TCF)||TCF<=0||isNaN(N)||N<1||isNaN(D)||D<0){alerta.style.display='block';res.style.display='none';return;}alerta.style.display='none';var S=0;for(var i=1;i<=N;i++){var da=30*i-D;if(da>0)S+=da;}if(S===0){alerta.style.display='block';document.getElementById('alerta2').textContent='Con esos dias de acreditacion el banco no cobra costo financiero.';res.style.display='none';return;}var TNA=(TCF/100)*N*365/S*100;document.getElementById('tna-value').textContent=TNA.toFixed(2)+'%';document.getElementById('tna-sub').textContent='Tasa CF '+TCF.toFixed(2)+'% | '+N+' cuotas | '+D+' dias acreditacion';res.style.display='block';}
+</script>
+</body>
+</html>
