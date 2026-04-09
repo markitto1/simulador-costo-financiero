@@ -171,8 +171,9 @@
           </table>
         </div>
         <div class="formula">
-          <b>Formula por cuota (interes compuesto):</b><br>
-          Costo(i) = (Valor / N) &times; [(1 + TNA/365)<sup>max(0, 30&times;i &minus; D)</sup> &minus; 1]
+          <b>Modelo valor presente:</b><br>
+          VP(i) = (Valor/N) / (1 + TNA/12)<sup>max(0, (30&times;i &minus; D)/30)</sup><br>
+          Costo total = Valor &minus; &Sigma; VP(i)
         </div>
       </div>
     </div>
@@ -216,8 +217,8 @@
       <div class="card" style="margin-top:16px;">
         <div class="card-title">Como se Calcula</div>
         <div class="formula">
-          <b>Tasa CF</b> = (1/N) &times; &Sigma; [(1 + TNA/365)<sup>max(0,30&times;i&minus;D)</sup> &minus; 1]<br><br>
-          No tiene solucion analitica &rarr; se resuelve numericamente por biseccion hasta encontrar la TNA que produce exactamente la Tasa CF ingresada.
+          <b>Modelo:</b> VP/Valor = (1/N) &times; &Sigma; (1 + TNA/12)<sup>&minus;max(0,(30i&minus;D)/30)</sup> = 1 &minus; Tasa CF%<br><br>
+          Se resuelve por biseccion numerica: se encuentra la tasa mensual r<sub>m</sub> tal que la ecuacion se cumple, luego TNA = r<sub>m</sub> &times; 12.
         </div>
       </div>
     </div>
@@ -242,13 +243,16 @@ function calcular(){
   var alerta=document.getElementById('alerta'),res=document.getElementById('resultado');
   if(isNaN(V)||V<=0||isNaN(N)||N<1||isNaN(TN)||TN<0||isNaN(D)||D<0){alerta.style.display='block';res.style.display='none';return;}
   alerta.style.display='none';
-  var vc=V/N,r=(TN/100)/365,totalCF=0,filas='';
+  var vc=V/N, rm=(TN/100)/12, VP=0, filas='';
   for(var i=1;i<=N;i++){
-    var dv=30*i,da=(dv>D?dv-D:0),cf=vc*(Math.pow(1+r,da)-1),nt=vc-cf;
-    totalCF+=cf;
-    filas+='<tr><td>'+i+'</td><td>'+dv+'d</td><td>'+da+'d</td><td>'+fmtP(vc)+'</td><td class="r">'+fmtP(cf)+'</td><td class="g">'+fmtP(nt)+'</td></tr>';
+    var dv=30*i, da=Math.max(0,dv-D);
+    var ti=da/30;
+    var pv=vc/Math.pow(1+rm,ti);
+    var cf=vc-pv;
+    VP+=pv;
+    filas+='<tr><td>'+i+'</td><td>'+dv+'d</td><td>'+da+'d</td><td>'+fmtP(vc)+'</td><td class="r">'+fmtP(cf)+'</td><td class="g">'+fmtP(pv)+'</td></tr>';
   }
-  var neto=V-totalCF;
+  var totalCF=V-VP, neto=VP;
   document.getElementById('tbody').innerHTML=filas;
   document.getElementById('tfoot').innerHTML='<tr><td>TOTAL</td><td></td><td></td><td>'+fmtP(V)+'</td><td class="r">'+fmtP(totalCF)+'</td><td class="g">'+fmtP(neto)+'</td></tr>';
   document.getElementById('r-cupon').innerHTML=fmtP(V);
@@ -264,21 +268,25 @@ function calcularTNA(){
   var alerta=document.getElementById('alerta2'),res=document.getElementById('tna-result');
   if(isNaN(TCF)||TCF<=0||isNaN(N)||N<1||isNaN(D)||D<0){alerta.style.display='block';res.style.display='none';return;}
   alerta.style.display='none';
-  var hayDias=false;
-  for(var i=1;i<=N;i++){if(30*i-D>0){hayDias=true;break;}}
-  if(!hayDias){document.getElementById('alerta2').textContent='Con esos dias de acreditacion el banco no cobra costo financiero.';alerta.style.display='block';res.style.display='none';return;}
-  function tasaCF(tna_dec){
-    var r=tna_dec/365,sum=0;
-    for(var i=1;i<=N;i++){var da=30*i-D;if(da>0)sum+=Math.pow(1+r,da)-1;}
+  var hayDesc=false;
+  for(var i=1;i<=N;i++){if(30*i>D){hayDesc=true;break;}}
+  if(!hayDesc){document.getElementById('alerta2').textContent='Con esos dias de acreditacion el banco no cobra costo financiero.';alerta.style.display='block';res.style.display='none';return;}
+  function vpRatio(rm){
+    var sum=0;
+    for(var i=1;i<=N;i++){
+      var ti=Math.max(0,(30*i-D)/30);
+      sum+=1/Math.pow(1+rm,ti);
+    }
     return sum/N;
   }
-  var target=TCF/100;
-  var lo=0,hi=10;
+  var target=1-TCF/100;
+  if(target<=0){document.getElementById('alerta2').textContent='La tasa CF no puede ser >= 100%.';alerta.style.display='block';res.style.display='none';return;}
+  var lo=0, hi=10;
   for(var iter=0;iter<100;iter++){
     var mid=(lo+hi)/2;
-    if(tasaCF(mid)<target)lo=mid;else hi=mid;
+    if(vpRatio(mid)>target) lo=mid; else hi=mid;
   }
-  var TNA=mid*100;
+  var TNA=mid*12*100;
   document.getElementById('tna-value').textContent=TNA.toFixed(2)+'%';
   document.getElementById('tna-sub').textContent='Tasa CF '+TCF.toFixed(2)+'% | '+N+' cuotas | '+D+' dias acreditacion';
   res.style.display='block';
