@@ -1,296 +1,1300 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Simulador CF — Megatlon</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador Financiero — Gimnasio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Arial Black',Arial,sans-serif;background:#f1f1f1;color:#111;-webkit-text-size-adjust:100%;}
+    /* ════════════════════════════════════════
+       TOKENS
+    ════════════════════════════════════════ */
+    :root {
+      --navy:      #0d2137;
+      --navy-mid:  #1a3a5c;
+      --blue:      #1d4ed8;
+      --blue-soft: #eff6ff;
+      --blue-mid:  #bfdbfe;
+      --green:     #059669;
+      --green-soft:#d1fae5;
+      --red:       #dc2626;
+      --red-soft:  #fee2e2;
+      --amber:     #b45309;
+      --amber-soft:#fef3c7;
+      --teal:      #0f766e;
+      --teal-soft: #ccfbf1;
+      --purple:    #6d28d9;
+      --bg:        #f1f5f9;
+      --card:      #ffffff;
+      --sidebar-bg:#f8fafc;
+      --border:    #e2e8f0;
+      --border-mid:#cbd5e1;
+      --text:      #0f172a;
+      --text-mid:  #334155;
+      --muted:     #64748b;
+      --radius-sm: 6px;
+      --radius:    10px;
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+      --shadow:    0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+      --shadow-lg: 0 4px 6px rgba(0,0,0,.07), 0 12px 32px rgba(0,0,0,.08);
+    }
 
-    /* HEADER */
-    .header{background:#000;padding:16px 20px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:12px;}
-    .header-logo{font-size:1.25rem;font-weight:900;color:#fff;letter-spacing:2px;text-transform:uppercase;}
-    .header-sep{width:1px;height:20px;background:#444;}
-    .header-title{font-size:.65rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1.5px;}
+    /* ════════════════════════════════════════
+       RESET & BASE
+    ════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* BODY WRAP */
-    .wrap{padding:20px 16px 48px;}
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
 
-    /* TABS */
-    .tabs{display:-webkit-flex;display:flex;gap:0;margin-bottom:20px;border:2px solid #000;}
-    .tab{-webkit-flex:1;flex:1;text-align:center;padding:12px 6px;font-size:.7rem;font-weight:900;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:#000;text-decoration:none;background:#fff;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;}
-    .tab:first-child{border-right:1px solid #000;}
-    .tab.active{background:#000;color:#fff;}
+    /* ════════════════════════════════════════
+       HEADER
+    ════════════════════════════════════════ */
+    .header {
+      background: var(--navy);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
 
-    /* PANEL */
-    .panel{display:none;}
-    .panel.active{display:block;}
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-    /* CARD */
-    .card{background:#fff;border:2px solid #000;padding:20px;margin-bottom:16px;}
-    .card-title{font-size:.6rem;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid #000;}
+    .header-logo {
+      width: 34px; height: 34px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
 
-    /* FIELDS */
-    .field{margin-bottom:16px;}
-    .field label{display:block;font-size:.6rem;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-    .field .hint{font-size:.65rem;color:#999;margin-top:4px;font-family:Arial,sans-serif;font-weight:400;}
-    .irow{display:-webkit-flex;display:flex;-webkit-align-items:stretch;align-items:stretch;}
-    .fix{background:#f1f1f1;padding:0 12px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;font-weight:900;color:#555;font-size:.85rem;border:2px solid #000;-webkit-flex-shrink:0;flex-shrink:0;}
-    .fix.l{border-right:none;}
-    .fix.r{border-left:none;}
-    input[type=text]{height:48px;padding:0 14px;border:2px solid #000;font-size:1.1rem;font-weight:900;color:#000;background:#fff;-webkit-appearance:none;appearance:none;border-radius:0;width:100%;font-family:'Arial Black',Arial,sans-serif;}
-    .irow input[type=text]{-webkit-flex:1;flex:1;min-width:0;}
-    input[type=text]:focus{outline:none;background:#f8f8f8;}
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.3px;
+    }
 
-    /* BUTTONS */
-    .btn-calc{display:block;width:100%;padding:16px;margin-top:18px;background:#000;color:#fff;font-size:.8rem;font-weight:900;text-align:center;letter-spacing:2px;text-transform:uppercase;text-decoration:none;-webkit-tap-highlight-color:transparent;cursor:pointer;border:2px solid #000;}
-    .btn-calc:active{background:#333;}
-    .btn-tna{background:#fff;color:#000;}
-    .btn-tna:active{background:#f1f1f1;}
+    .header-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 1px;
+    }
 
-    /* ALERT */
-    .alert{display:none;margin-top:12px;padding:11px 14px;background:#fff0f0;border:2px solid #000;color:#c00;font-size:.75rem;font-family:Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    /* RESULT BOXES */
-    .boxes{display:-webkit-flex;display:flex;gap:0;margin-bottom:16px;border:2px solid #000;}
-    .box{-webkit-flex:1;flex:1;padding:14px 8px;text-align:center;}
-    .box+.box{border-left:2px solid #000;}
-    .box .bl{font-size:.55rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#777;margin-bottom:6px;}
-    .box .bv{font-size:.88rem;font-weight:900;line-height:1.2;color:#000;}
-    .box .bs{font-size:.6rem;color:#999;margin-top:3px;font-family:Arial,sans-serif;font-weight:400;}
-    .box-mid{background:#000;}
-    .box-mid .bl{color:#777;}
-    .box-mid .bv{color:#fff;}
-    .box-mid .bs{color:#aaa;}
+    .header-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      letter-spacing: .3px;
+    }
 
-    /* TABLE */
-    .twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-    table{width:100%;border-collapse:collapse;font-size:.78rem;min-width:380px;}
-    th{background:#000;color:#fff;font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.5px;padding:9px 10px;text-align:right;}
-    th:first-child{text-align:center;}
-    td{padding:8px 10px;text-align:right;border-bottom:1px solid #e8e8e8;font-family:Arial,sans-serif;}
-    td:first-child{text-align:center;font-weight:900;color:#000;font-family:'Arial Black',Arial,sans-serif;}
-    tfoot td{font-weight:900;background:#f1f1f1;border-top:2px solid #000;font-family:'Arial Black',Arial,sans-serif;}
-    .r{color:#c00;} .g{color:#007a33;}
+    /* ════════════════════════════════════════
+       LAYOUT
+    ════════════════════════════════════════ */
+    .layout {
+      display: grid;
+      grid-template-columns: 348px 1fr;
+      gap: 20px;
+      padding: 20px 28px 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
 
-    /* FORMULA */
-    .formula{background:#f1f1f1;border:2px solid #e0e0e0;padding:12px 14px;margin-top:14px;font-size:.7rem;color:#555;line-height:1.8;font-family:Arial,sans-serif;}
-    .formula b{color:#000;font-family:'Arial Black',Arial,sans-serif;}
+    /* ════════════════════════════════════════
+       SIDEBAR
+    ════════════════════════════════════════ */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-    /* TNA RESULT */
-    .tna-result{display:none;margin-top:16px;}
-    .tna-big{background:#000;padding:24px;text-align:center;}
-    .tna-label{font-size:.6rem;font-weight:900;color:#aaa;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
-    .tna-value{font-size:3rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-1px;}
-    .tna-unit{font-size:1.2rem;color:#aaa;margin-left:4px;}
-    .tna-sub{font-size:.7rem;color:#777;margin-top:10px;font-family:Arial,sans-serif;font-weight:400;}
+    .s-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
 
-    #resultado{display:none;}
+    .s-card-head {
+      padding: 10px 14px 9px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--sidebar-bg);
+    }
+
+    .s-card-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--navy-mid);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+
+    .s-card-body { padding: 12px 14px; }
+
+    /* ── Fields ── */
+    .field { margin-bottom: 9px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 3px;
+      letter-spacing: .1px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .inp-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .inp-pfx, .inp-sfx {
+      position: absolute;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--muted);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .inp-pfx { left: 9px; }
+    .inp-sfx { right: 9px; }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 7px 9px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(29,78,216,.12);
+    }
+    .has-pfx input { padding-left: 22px; }
+    .has-sfx input { padding-right: 24px; }
+
+    /* ── Segmented ── */
+    .seg-ctrl {
+      display: flex;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .seg {
+      flex: 1;
+      padding: 4px 0;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all .15s;
+    }
+    .seg.active { background: var(--navy); color: #fff; }
+    .seg:not(:first-child) { border-left: 1.5px solid var(--border); }
+
+    /* ── Range ── */
+    input[type="range"] {
+      width: 100%;
+      margin-top: 5px;
+      accent-color: var(--blue);
+      height: 4px;
+    }
+    .range-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 3px;
+    }
+    .range-lbl { font-size: 10px; color: var(--muted); }
+    .range-val { font-size: 12px; font-weight: 800; color: var(--blue); }
+
+    /* ── Investment totalizador ── */
+    .inv-total {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding: 9px 11px;
+      background: var(--navy);
+      border-radius: var(--radius-sm);
+    }
+    .inv-total-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #93c5fd;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .inv-total-val {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      width: 100%;
+      padding: 10px;
+      background: var(--blue);
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      letter-spacing: .1px;
+      transition: background .15s, transform .1s, box-shadow .15s;
+      box-shadow: 0 2px 8px rgba(29,78,216,.3);
+    }
+    .btn-primary:hover { background: #1e40af; box-shadow: 0 4px 12px rgba(29,78,216,.35); }
+    .btn-primary:active { transform: scale(.99); }
+
+    .btn-ghost {
+      width: 100%;
+      margin-top: 6px;
+      padding: 7px;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 11.5px;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-ghost:hover { border-color: var(--navy); color: var(--navy); background: var(--blue-soft); }
+
+    /* ════════════════════════════════════════
+       MAIN
+    ════════════════════════════════════════ */
+    .main { display: flex; flex-direction: column; gap: 14px; }
+
+    /* ── USD bar ── */
+    .usd-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-usd {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 13px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+    .btn-usd:hover { border-color: var(--teal); color: var(--teal); }
+    .btn-usd.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+    .usd-field {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    .usd-field.on { display: flex; }
+    .usd-field label { font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+    .usd-field .inp-wrap { max-width: 180px; }
+
+    .usd-badge {
+      margin-left: auto;
+      padding: 3px 9px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-size: 10.5px;
+      font-weight: 800;
+      border-radius: 20px;
+      display: none;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+    .usd-badge.on { display: block; }
+
+    /* ── Alert ── */
+    .alert {
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      border-left: 3px solid;
+      display: none;
+    }
+    .alert.on { display: block; }
+    .alert-warn {
+      background: var(--amber-soft);
+      color: var(--amber);
+      border-color: var(--amber);
+    }
+
+    /* ── KPI grid ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .kpi {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 14px 12px;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow .2s;
+    }
+    .kpi:hover { box-shadow: var(--shadow); }
+
+    .kpi-stripe {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .kpi-icon {
+      font-size: 18px;
+      margin-bottom: 6px;
+      line-height: 1;
+    }
+
+    .kpi-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      margin-bottom: 4px;
+    }
+
+    .kpi-val {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-sub {
+      font-size: 10.5px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* ── Summary row ── */
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .sum-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sum-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .7px;
+    }
+
+    .sum-val {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sum-sub {
+      font-size: 10.5px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Chart ── */
+    .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 18px 20px;
+    }
+
+    .chart-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .chart-title { font-size: 13px; font-weight: 700; color: var(--text-mid); }
+
+    .chart-tabs { display: flex; border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+    .chart-tab {
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .chart-tab.active { background: var(--navy); color: #fff; }
+    .chart-tab:not(:first-child) { border-left: 1.5px solid var(--border); }
+    .chart-wrap { height: 210px; }
+
+    /* ── Table ── */
+    .table-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .table-head-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--sidebar-bg);
+    }
+
+    .table-head-bar h3 { font-size: 13px; font-weight: 700; color: var(--text-mid); }
+
+    .table-wrap { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+
+    thead tr {
+      background: var(--navy);
+    }
+    thead th {
+      padding: 9px 11px;
+      text-align: right;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      white-space: nowrap;
+      letter-spacing: .5px;
+    }
+    thead th:first-child {
+      text-align: left;
+      color: #cbd5e1;
+      padding-left: 18px;
+    }
+
+    tbody tr:nth-child(even) { background: var(--sidebar-bg); }
+    tbody tr:hover { background: var(--blue-soft); }
+
+    tbody td {
+      padding: 7px 11px;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      color: var(--text-mid);
+    }
+    tbody td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: var(--muted);
+      padding-left: 18px;
+    }
+
+    tbody tr.yr0 { background: #fffbeb; }
+    tbody tr.yr0:hover { background: #fef3c7; }
+    tbody tr.yr0 td { color: var(--amber); }
+
+    /* separator between sections */
+    tbody tr.sep-top td { border-top: 2px solid var(--border-mid); }
+
+    .t-green  { color: var(--green)  !important; font-weight: 700; }
+    .t-red    { color: var(--red)    !important; font-weight: 700; }
+    .t-blue   { color: var(--blue)   !important; font-weight: 700; }
+    .t-navy   { color: var(--navy)   !important; font-weight: 800; }
+    .t-bold   { font-weight: 800     !important; color: var(--text) !important; }
+    .t-muted  { color: #94a3b8       !important; font-size: 11px; font-weight: 400 !important; }
+    .t-zero   { color: #cbd5e1       !important; font-weight: 400; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 4px;
+    }
+
+    /* ════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════ */
+    @media (max-width: 1140px) {
+      .layout { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+      .summary-row { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-logo">MEGATLON</div>
-  <div class="header-sep"></div>
-  <div class="header-title">Simulador de Costo Financiero</div>
-</div>
-
-<div class="wrap">
-
-  <div class="tabs">
-    <a class="tab active" href="javascript:switchTab('cf')">Calcular CF</a>
-    <a class="tab" href="javascript:switchTab('tna')">Calcular TNA</a>
-  </div>
-
-  <!-- PANEL CF -->
-  <div class="panel active" id="panel-cf">
-    <div class="card">
-      <div class="card-title">Parametros</div>
-      <div class="field">
-        <label>Valor del Cupon</label>
-        <div class="irow">
-          <span class="fix l">$</span>
-          <input type="text" id="vc" inputmode="decimal" placeholder="10000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-        </div>
-        <div class="hint">Monto total de la venta</div>
-      </div>
-      <div class="field">
-        <label>Cantidad de Cuotas</label>
-        <input type="text" id="cu" inputmode="numeric" placeholder="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-        <div class="hint">Numero de cuotas del cliente</div>
-      </div>
-      <div class="field">
-        <label>TNA Aplicada</label>
-        <div class="irow">
-          <input type="text" id="tn" inputmode="decimal" placeholder="45" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-          <span class="fix r">%</span>
-        </div>
-        <div class="hint">Tasa Nominal Anual del banco</div>
-      </div>
-      <div class="field">
-        <label>Dias de Acreditacion</label>
-        <div class="irow">
-          <input type="text" id="da" inputmode="numeric" placeholder="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-          <span class="fix r">dias</span>
-        </div>
-        <div class="hint">Dias hasta que el banco te acredita</div>
-      </div>
-      <a class="btn-calc" href="javascript:calcular()">Calcular Costo Financiero</a>
-      <div class="alert" id="alerta">Completa todos los campos con valores validos.</div>
-    </div>
-
-    <div id="resultado">
-      <div class="boxes">
-        <div class="box">
-          <div class="bl">Cupon</div>
-          <div class="bv" id="r-cupon">-</div>
-          <div class="bs">Total venta</div>
-        </div>
-        <div class="box box-mid">
-          <div class="bl">Costo CF</div>
-          <div class="bv" id="r-costo">-</div>
-          <div class="bs" id="r-cpct">-</div>
-        </div>
-        <div class="box">
-          <div class="bl">Neto</div>
-          <div class="bv" id="r-neto">-</div>
-          <div class="bs" id="r-npct">-</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Detalle por Cuota</div>
-        <div class="twrap">
-          <table>
-            <thead>
-              <tr><th>Cuota</th><th>Vencim.</th><th>Dias antic.</th><th>Valor cuota</th><th>Costo CF</th><th>Neto cuota</th></tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-            <tfoot id="tfoot"></tfoot>
-          </table>
-        </div>
-        <div class="formula">
-          <b>Modelo valor presente:</b><br>
-          VP(i) = (Valor/N) / (1 + TNA/12)<sup>max(0, (30&times;i &minus; D)/30)</sup><br>
-          Costo total = Valor &minus; &Sigma; VP(i)
-        </div>
-      </div>
+<!-- ══════════════ HEADER ══════════════ -->
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo">🏋️</div>
+    <div>
+      <div class="header-title">Simulador Financiero</div>
+      <div class="header-sub">Proyección · Rentabilidad · Sensibilidad</div>
     </div>
   </div>
-
-  <!-- PANEL TNA -->
-  <div class="panel" id="panel-tna">
-    <div class="card">
-      <div class="card-title">Parametros</div>
-      <div class="field">
-        <label>Tasa de Costo Financiero</label>
-        <div class="irow">
-          <input type="text" id="tcf" inputmode="decimal" placeholder="3.5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-          <span class="fix r">%</span>
-        </div>
-        <div class="hint">Porcentaje total que cobra el banco sobre el cupon</div>
-      </div>
-      <div class="field">
-        <label>Cantidad de Cuotas</label>
-        <input type="text" id="cu2" inputmode="numeric" placeholder="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-        <div class="hint">Numero de cuotas del cliente</div>
-      </div>
-      <div class="field">
-        <label>Dias de Acreditacion</label>
-        <div class="irow">
-          <input type="text" id="da2" inputmode="numeric" placeholder="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-          <span class="fix r">dias</span>
-        </div>
-        <div class="hint">Dias hasta que el banco te acredita</div>
-      </div>
-      <a class="btn-calc btn-tna" href="javascript:calcularTNA()">Calcular TNA Equivalente</a>
-      <div class="alert" id="alerta2">Completa todos los campos con valores validos.</div>
-    </div>
-
-    <div class="tna-result" id="tna-result">
-      <div class="tna-big">
-        <div class="tna-label">TNA Equivalente</div>
-        <div class="tna-value" id="tna-value">-</div>
-        <div class="tna-sub" id="tna-sub">-</div>
-      </div>
-      <div class="card" style="margin-top:16px;">
-        <div class="card-title">Como se Calcula</div>
-        <div class="formula">
-          <b>Modelo:</b> VP/Valor = (1/N) &times; &Sigma; (1 + TNA/12)<sup>&minus;max(0,(30i&minus;D)/30)</sup> = 1 &minus; Tasa CF%<br><br>
-          Se resuelve por biseccion numerica: se encuentra la tasa mensual r<sub>m</sub> tal que la ecuacion se cumple, luego TNA = r<sub>m</sub> &times; 12.
-        </div>
-      </div>
-    </div>
+  <div class="header-right">
+    <span class="header-pill" id="header-date"></span>
+    <span class="header-pill">v2.0</span>
   </div>
+</header>
 
-</div>
+<!-- ══════════════ LAYOUT ══════════════ -->
+<div class="layout">
 
+  <!-- ══════ SIDEBAR ══════ -->
+  <aside class="sidebar">
+
+    <!-- Ingresos -->
+    <div class="s-card">
+      <div class="s-card-head">
+        <span class="s-card-title">📈 Ingresos</span>
+      </div>
+      <div class="s-card-body">
+        <div class="field">
+          <label class="field-label">Cantidad de socios</label>
+          <div class="inp-wrap">
+            <input type="text" id="socios" value="1.800" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Precio mensual s/IVA</label>
+          <div class="inp-wrap has-pfx">
+            <span class="inp-pfx">$</span>
+            <input type="text" id="precioMensual" value="95.041" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">Otros ingresos %</label>
+            <div class="inp-wrap has-sfx">
+              <input type="number" id="pctGym" value="9.66" min="0" max="100" step="0.1" />
+              <span class="inp-sfx">%</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Costo ventas %</label>
+            <div class="inp-wrap has-sfx">
+              <input type="number" id="pctCosto" value="14" min="0" max="100" step="0.1" />
+              <span class="inp-sfx">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Costos Fijos -->
+    <div class="s-card">
+      <div class="s-card-head">
+        <span class="s-card-title">💼 Costos Fijos</span>
+        <div class="seg-ctrl">
+          <button class="seg" onclick="setCostoMode('mensual',this)">Mensual</button>
+          <button class="seg active" onclick="setCostoMode('anual',this)">Anual</button>
+        </div>
+      </div>
+      <div class="s-card-body">
+        <div class="field">
+          <label class="field-label" id="lbl-masa">Masa Salarial — Anual</label>
+          <div class="inp-wrap has-pfx">
+            <span class="inp-pfx">$</span>
+            <input type="text" id="masaSalarial" value="600.000.000" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" id="lbl-alq">Alquiler — Anual</label>
+          <div class="inp-wrap has-pfx">
+            <span class="inp-pfx">$</span>
+            <input type="text" id="alquiler" value="208.800.000" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" id="lbl-gop">Gastos Operativos — Anual</label>
+          <div class="inp-wrap has-pfx">
+            <span class="inp-pfx">$</span>
+            <input type="text" id="gastosOp" value="240.000.000" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" id="lbl-lea">Leasing Máquinas — Anual</label>
+          <div class="inp-wrap has-pfx">
+            <span class="inp-pfx">$</span>
+            <input type="text" id="leasing" value="0" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inversión -->
+    <div class="s-card">
+      <div class="s-card-head">
+        <span class="s-card-title">🏗️ Inversión Inicial</span>
+      </div>
+      <div class="s-card-body">
+        <div class="field">
+          <label class="field-label">Obra Civil</label>
+          <div class="inp-wrap has-pfx">
+            <span class="inp-pfx">$</span>
+            <input type="text" id="obraCivil" value="1.200.000.000" oninput="updateInvTotal()" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Máquinas</label>
+          <div class="inp-wrap has-pfx">
+            <span class="inp-pfx">$</span>
+            <input type="text" id="maquinas" value="700.000.000" oninput="updateInvTotal()" />
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Marketing / Sistemas</label>
+          <div class="inp-wrap has-pfx">
+            <span class="inp-pfx">$</span>
+            <input type="text" id="marketing" value="275.000.000" oninput="updateInvTotal()" />
+          </div>
+        </div>
+        <div class="inv-total">
+          <span class="inv-total-label">Total Inversión</span>
+          <span class="inv-total-val" id="inv-total-disp">$ 2.175.000.000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Parámetros -->
+    <div class="s-card">
+      <div class="s-card-head">
+        <span class="s-card-title">📊 Parámetros Financieros</span>
+      </div>
+      <div class="s-card-body">
+        <div class="field">
+          <label class="field-label">Tasa de Referencia — <span id="tasa-val">8</span>%</label>
+          <input type="range" id="tasaRef" min="1" max="30" step="0.5" value="8"
+            oninput="document.getElementById('tasa-val').textContent=this.value;
+                     document.getElementById('tasa-disp').textContent=this.value+'%'" />
+          <div class="range-row">
+            <span class="range-lbl">1%</span>
+            <span class="range-val" id="tasa-disp">8%</span>
+            <span class="range-lbl">30%</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Horizonte — <span id="horiz-val">10</span> años</label>
+          <input type="range" id="horizonte" min="3" max="15" step="1" value="10"
+            oninput="document.getElementById('horiz-val').textContent=this.value;
+                     document.getElementById('horiz-disp').textContent=this.value+' años'" />
+          <div class="range-row">
+            <span class="range-lbl">3 años</span>
+            <span class="range-val" id="horiz-disp">10 años</span>
+            <span class="range-lbl">15 años</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="runModel()">⚡ Calcular Proyección</button>
+    <button class="btn-ghost" onclick="resetDefaults()">↺ Restaurar valores originales</button>
+
+  </aside>
+
+  <!-- ══════ MAIN ══════ -->
+  <main class="main">
+
+    <!-- USD bar -->
+    <div class="usd-bar">
+      <button class="btn-usd" id="usd-btn" onclick="toggleUSD()">
+        <span>💵</span> Ver en USD
+      </button>
+      <div class="usd-field" id="usd-field">
+        <label>Tipo de cambio ($ / U$S)</label>
+        <div class="inp-wrap has-pfx">
+          <span class="inp-pfx" style="color:var(--teal)">$</span>
+          <input type="text" id="usdRate" value="1.000"
+            style="border-color:var(--teal);color:var(--teal);max-width:160px"
+            onblur="formatMoneyEl(this);runModel()"
+            onkeydown="if(event.key==='Enter'){formatMoneyEl(this);runModel()}" />
+        </div>
+      </div>
+      <div class="usd-badge" id="usd-badge">USD ACTIVO</div>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert alert-warn" id="alert-neg">
+      ⚠️ <strong>EBITDA negativo.</strong> Con los parámetros actuales el negocio no cubre sus costos fijos. Revisá los inputs.
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-stripe" style="background:var(--green)"></div>
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-lbl">VAN del Proyecto</div>
+        <div class="kpi-val" id="kpi-van" style="color:var(--green)">—</div>
+        <div class="kpi-sub">Al <span id="kpi-tasa">8</span>% anual</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-stripe" style="background:var(--blue)"></div>
+        <div class="kpi-icon">📊</div>
+        <div class="kpi-lbl">TIR del Proyecto</div>
+        <div class="kpi-val" id="kpi-tir" style="color:var(--blue)">—</div>
+        <div class="kpi-sub">Tasa interna de retorno</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-stripe" style="background:var(--purple)"></div>
+        <div class="kpi-icon">⏱️</div>
+        <div class="kpi-lbl">Payback</div>
+        <div class="kpi-val" id="kpi-payback" style="color:var(--purple)">—</div>
+        <div class="kpi-sub">Recupero de inversión</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-stripe" style="background:var(--amber)"></div>
+        <div class="kpi-icon">🎯</div>
+        <div class="kpi-lbl">Punto de Equilibrio</div>
+        <div class="kpi-val" id="kpi-be" style="color:var(--amber)">—</div>
+        <div class="kpi-sub">Socios mínimos</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-stripe" style="background:var(--teal)"></div>
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-lbl">Índice de Rentabilidad</div>
+        <div class="kpi-val" id="kpi-ir" style="color:var(--teal)">—</div>
+        <div class="kpi-sub">Por cada $ invertido</div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-row">
+      <div class="sum-card">
+        <span class="sum-label">Ingresos Netos Anuales</span>
+        <span class="sum-val" id="sum-ing" style="color:var(--blue)">—</span>
+        <span class="sum-sub">Ventas + Otros − Costo Ventas</span>
+      </div>
+      <div class="sum-card">
+        <span class="sum-label">Egresos Fijos Anuales</span>
+        <span class="sum-val" id="sum-egr" style="color:var(--red)">—</span>
+        <span class="sum-sub">Salarial · Alquiler · Operativos · Leasing</span>
+      </div>
+      <div class="sum-card">
+        <span class="sum-label">EBITDA Anual</span>
+        <span class="sum-val" id="sum-ebitda">—</span>
+        <span class="sum-sub" id="sum-ebitda-pct">Margen EBITDA</span>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-card">
+      <div class="chart-top">
+        <span class="chart-title">Evolución del EBITDA</span>
+        <div class="chart-tabs">
+          <button class="chart-tab active" onclick="switchChart('acum',this)">Acumulado</button>
+          <button class="chart-tab" onclick="switchChart('anual',this)">Anual</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-head-bar">
+        <h3>Proyección Año a Año</h3>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr id="tbl-head"><th>Concepto</th></tr></thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+</div><!-- /layout -->
+
+<footer class="footer">
+  Simulador Financiero — Gimnasio &nbsp;·&nbsp; Actualizado automáticamente al modificar inputs &nbsp;·&nbsp; Los valores son estimativos
+</footer>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
 <script>
-function switchTab(t){
-  document.querySelectorAll('.tab').forEach(function(el){el.classList.remove('active');});
-  document.querySelectorAll('.panel').forEach(function(el){el.classList.remove('active');});
-  document.getElementById('panel-'+t).classList.add('active');
-  var tabs=document.querySelectorAll('.tab');
-  if(t==='cf')tabs[0].classList.add('active');else tabs[1].classList.add('active');
-}
-function fmtP(n){var p=n.toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');return '$ '+p[0]+','+p[1];}
-function leer(id){return parseFloat(document.getElementById(id).value.trim().replace(',','.'));}
-function leerInt(id){return parseInt(document.getElementById(id).value.trim(),10);}
 
-function calcular(){
-  var V=leer('vc'),N=leerInt('cu'),TN=leer('tn'),D=leerInt('da');
-  var alerta=document.getElementById('alerta'),res=document.getElementById('resultado');
-  if(isNaN(V)||V<=0||isNaN(N)||N<1||isNaN(TN)||TN<0||isNaN(D)||D<0){alerta.style.display='block';res.style.display='none';return;}
-  alerta.style.display='none';
-  var vc=V/N, rm=(TN/100)/12, VP=0, filas='';
-  for(var i=1;i<=N;i++){
-    var dv=30*i, da=Math.max(0,dv-D);
-    var ti=da/30;
-    var pv=vc/Math.pow(1+rm,ti);
-    var cf=vc-pv;
-    VP+=pv;
-    filas+='<tr><td>'+i+'</td><td>'+dv+'d</td><td>'+da+'d</td><td>'+fmtP(vc)+'</td><td class="r">'+fmtP(cf)+'</td><td class="g">'+fmtP(pv)+'</td></tr>';
+/* ─── State ─── */
+let costoMode    = 'anual';
+let usdMode      = false;
+let currentChart = 'acum';
+let chartInst    = null;
+let lastResult   = null;
+
+/* ─── Header date ─── */
+document.getElementById('header-date').textContent =
+  new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' });
+
+/* ─── Number helpers ─── */
+function addDots(n) {
+  return Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+function parseVal(str) {
+  return parseFloat(String(str || '0').replace(/\./g, '').replace(',', '.')) || 0;
+}
+function formatMoneyEl(el) {
+  el.value = addDots(parseVal(el.value));
+}
+function getVal(id) { return parseVal(document.getElementById(id).value); }
+function setVal(id, n) { document.getElementById(id).value = addDots(n); }
+
+/* ─── Display formatting ─── */
+function fmtBig(n) {
+  let v   = usdMode ? n / getVal('usdRate') : n;
+  const p = usdMode ? 'U$S' : '$';
+  const s = v < 0 ? '-' : '';
+  const a = Math.abs(v);
+  if (a >= 1e9) return s + p + ' ' + (a / 1e9).toFixed(2) + ' B';
+  if (a >= 1e6) return s + p + ' ' + (a / 1e6).toFixed(1) + ' M';
+  return s + p + ' ' + addDots(a);
+}
+
+function fmtFull(n) {
+  let v   = usdMode ? n / getVal('usdRate') : n;
+  const p = usdMode ? 'U$S' : '$';
+  const s = v < 0 ? '-' : '';
+  return s + p + ' ' + addDots(Math.abs(v));
+}
+
+/* ─── Investment total ─── */
+function updateInvTotal() {
+  const t = getVal('obraCivil') + getVal('maquinas') + getVal('marketing');
+  document.getElementById('inv-total-disp').textContent = '$ ' + addDots(t);
+}
+
+/* ─── Costo mode ─── */
+const CIDS  = ['masaSalarial','alquiler','gastosOp','leasing'];
+const CLBLS = ['Masa Salarial','Alquiler','Gastos Operativos','Leasing Máquinas'];
+const CLIDS = ['lbl-masa','lbl-alq','lbl-gop','lbl-lea'];
+
+function setCostoMode(mode, btn) {
+  if (mode === costoMode) return;
+  CIDS.forEach(id => setVal(id, Math.round(getVal(id) * (mode === 'mensual' ? 1/12 : 12))));
+  CLIDS.forEach((lid, i) => {
+    document.getElementById(lid).textContent = CLBLS[i] + ' — ' + (mode === 'mensual' ? 'Mensual' : 'Anual');
+  });
+  document.querySelectorAll('.seg').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  costoMode = mode;
+  runModel();
+}
+
+/* ─── USD ─── */
+function toggleUSD() {
+  usdMode = !usdMode;
+  document.getElementById('usd-btn').classList.toggle('active', usdMode);
+  document.getElementById('usd-btn').innerHTML = usdMode ? '<span>💵</span> Ver en $' : '<span>💵</span> Ver en USD';
+  document.getElementById('usd-field').classList.toggle('on', usdMode);
+  document.getElementById('usd-badge').classList.toggle('on', usdMode);
+  if (lastResult) refreshDisplays(lastResult);
+}
+
+/* ─── IRR ─── */
+function irrCalc(cfs) {
+  let r = 0.2;
+  for (let i = 0; i < 500; i++) {
+    let npv = 0, d = 0;
+    cfs.forEach((cf, t) => { const p = Math.pow(1+r, t); npv += cf/p; d -= t*cf/(p*(1+r)); });
+    if (Math.abs(d) < 1e-12) break;
+    const rn = r - npv/d;
+    if (Math.abs(rn - r) < 1e-9) { r = rn; break; }
+    r = rn;
   }
-  var totalCF=V-VP, neto=VP;
-  document.getElementById('tbody').innerHTML=filas;
-  document.getElementById('tfoot').innerHTML='<tr><td>TOTAL</td><td></td><td></td><td>'+fmtP(V)+'</td><td class="r">'+fmtP(totalCF)+'</td><td class="g">'+fmtP(neto)+'</td></tr>';
-  document.getElementById('r-cupon').innerHTML=fmtP(V);
-  document.getElementById('r-costo').innerHTML=fmtP(totalCF);
-  document.getElementById('r-cpct').innerHTML=((totalCF/V)*100).toFixed(2)+'% del total';
-  document.getElementById('r-neto').innerHTML=fmtP(neto);
-  document.getElementById('r-npct').innerHTML=((neto/V)*100).toFixed(2)+'% del total';
-  res.style.display='block';
+  return r;
 }
 
-function calcularTNA(){
-  var TCF=leer('tcf'),N=leerInt('cu2'),D=leerInt('da2');
-  var alerta=document.getElementById('alerta2'),res=document.getElementById('tna-result');
-  if(isNaN(TCF)||TCF<=0||isNaN(N)||N<1||isNaN(D)||D<0){alerta.style.display='block';res.style.display='none';return;}
-  alerta.style.display='none';
-  var hayDesc=false;
-  for(var i=1;i<=N;i++){if(30*i>D){hayDesc=true;break;}}
-  if(!hayDesc){document.getElementById('alerta2').textContent='Con esos dias de acreditacion el banco no cobra costo financiero.';alerta.style.display='block';res.style.display='none';return;}
-  function vpRatio(rm){
-    var sum=0;
-    for(var i=1;i<=N;i++){
-      var ti=Math.max(0,(30*i-D)/30);
-      sum+=1/Math.pow(1+rm,ti);
+/* ─── Model ─── */
+function calcModel() {
+  const socios     = getVal('socios');
+  const precioM    = getVal('precioMensual');
+  const pctGym     = parseFloat(document.getElementById('pctGym').value)    || 0;
+  const pctCosto   = parseFloat(document.getElementById('pctCosto').value)   || 0;
+  const mult       = costoMode === 'mensual' ? 12 : 1;
+  const masaSal    = getVal('masaSalarial') * mult;
+  const alq        = getVal('alquiler')     * mult;
+  const gop        = getVal('gastosOp')     * mult;
+  const leas       = getVal('leasing')      * mult;
+  const obraCivil  = getVal('obraCivil');
+  const maquinas   = getVal('maquinas');
+  const marketing  = getVal('marketing');
+  const tasaRef    = parseFloat(document.getElementById('tasaRef').value) / 100;
+  const horizonte  = parseInt(document.getElementById('horizonte').value);
+
+  const ventas    = socios * 12 * precioM;
+  const gymPadel  = ventas * pctGym   / 100;
+  const costoVtas = ventas * pctCosto / 100;
+  const ingNetos  = ventas + gymPadel - costoVtas;
+  const egresos   = masaSal + alq + gop + leas;
+  const ebitda    = ingNetos - egresos;
+  const ebitdaPct = ingNetos > 0 ? ebitda / ingNetos : 0;
+  const inversion = obraCivil + maquinas + marketing;
+  const breakEven = precioM > 0 ? Math.ceil(egresos / (precioM * 12)) : 0;
+  const cfs       = [-inversion, ...Array(horizonte).fill(ebitda)];
+  const van       = cfs.reduce((a, cf, t) => a + cf / Math.pow(1 + tasaRef, t), 0);
+  const tir       = ebitda > 0 ? irrCalc(cfs) : null;
+  const payback   = ebitda > 0 ? inversion / ebitda : null;
+  const ir        = inversion > 0 ? (van + inversion) / inversion : 0;
+  const tasaDisp  = parseFloat(document.getElementById('tasaRef').value);
+
+  const years = [];
+  let acum = 0;
+  for (let y = 0; y <= horizonte; y++) {
+    acum += y === 0 ? 0 : ebitda;
+    years.push({ y,
+      ventas:    y === 0 ? 0 : ventas,
+      gymPadel:  y === 0 ? 0 : gymPadel,
+      costoVtas: y === 0 ? 0 : costoVtas,
+      ingNetos:  y === 0 ? 0 : ingNetos,
+      masaSal:   y === 0 ? 0 : masaSal,
+      alq:       y === 0 ? 0 : alq,
+      gop:       y === 0 ? 0 : gop,
+      leas:      y === 0 ? 0 : leas,
+      egresos:   y === 0 ? 0 : egresos,
+      ebitda:    y === 0 ? 0 : ebitda,
+      ebitdaAcum: acum,
+      inversion: y === 0 ? inversion : 0
+    });
+  }
+
+  return { ventas, gymPadel, costoVtas, ingNetos, egresos, ebitda, ebitdaPct,
+           inversion, breakEven, van, tir, payback, ir, years, horizonte, tasaDisp };
+}
+
+/* ─── Refresh UI ─── */
+function refreshDisplays(res) {
+  document.getElementById('alert-neg').classList.toggle('on', res.ebitda < 0);
+  document.getElementById('kpi-tasa').textContent = res.tasaDisp;
+
+  // KPIs
+  const vanEl = document.getElementById('kpi-van');
+  vanEl.textContent = fmtBig(res.van);
+  vanEl.style.color = res.van >= 0 ? 'var(--green)' : 'var(--red)';
+
+  const tirEl = document.getElementById('kpi-tir');
+  if (res.tir !== null && isFinite(res.tir) && res.tir > -1) {
+    tirEl.textContent = (res.tir * 100).toFixed(0) + '%';
+    tirEl.style.color = res.tir >= res.tasaDisp/100 ? 'var(--green)' : 'var(--red)';
+  } else {
+    tirEl.textContent = 'N/A'; tirEl.style.color = 'var(--red)';
+  }
+
+  document.getElementById('kpi-payback').textContent =
+    res.payback ? res.payback.toFixed(1) + ' años' : '∞';
+  document.getElementById('kpi-be').textContent =
+    res.breakEven.toLocaleString('es-AR') + ' socios';
+  document.getElementById('kpi-ir').textContent =
+    res.ir > 0 ? res.ir.toFixed(2) + 'x' : '—';
+
+  // Summary
+  document.getElementById('sum-ing').textContent   = fmtBig(res.ingNetos);
+  document.getElementById('sum-egr').textContent   = fmtBig(res.egresos);
+  const ebitEl = document.getElementById('sum-ebitda');
+  ebitEl.textContent = fmtBig(res.ebitda);
+  ebitEl.style.color = res.ebitda >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('sum-ebitda-pct').textContent =
+    'Margen EBITDA: ' + (res.ebitdaPct * 100).toFixed(0) + '%';
+
+  renderChart(res);
+  renderTable(res);
+}
+
+function runModel() {
+  lastResult = calcModel();
+  refreshDisplays(lastResult);
+}
+
+/* ─── Chart ─── */
+function renderChart(res) {
+  const labels = res.years.map(y => y.y === 0 ? 'Año 0' : 'Año ' + y.y);
+  const raw    = (currentChart === 'acum'
+    ? res.years.map(y => y.y === 0 ? -res.inversion : y.ebitdaAcum)
+    : res.years.map(y => y.y === 0 ? -res.inversion : y.ebitda));
+  const data   = usdMode ? raw.map(v => v / getVal('usdRate')) : raw;
+
+  if (chartInst) chartInst.destroy();
+  chartInst = new Chart(document.getElementById('myChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: data.map(v => v >= 0 ? 'rgba(5,150,105,.15)' : 'rgba(220,38,38,.12)'),
+        borderColor:      data.map(v => v >= 0 ? 'rgba(5,150,105,.9)' : 'rgba(220,38,38,.9)'),
+        borderWidth: 1.5,
+        borderRadius: 3,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13,33,55,.95)',
+          titleColor: '#94a3b8',
+          bodyColor: '#e2e8f0',
+          padding: 10,
+          callbacks: {
+            label: c => ' ' + fmtBig(usdMode ? c.parsed.y * getVal('usdRate') : c.parsed.y)
+          }
+        }
+      },
+      scales: {
+        y: {
+          grid: { color: '#f1f5f9' },
+          border: { color: 'transparent' },
+          ticks: {
+            font: { family: 'Inter', size: 10.5 },
+            color: '#94a3b8',
+            callback: v => fmtBig(usdMode ? v * getVal('usdRate') : v)
+          }
+        },
+        x: {
+          grid: { display: false },
+          border: { color: 'transparent' },
+          ticks: { font: { family: 'Inter', size: 10.5 }, color: '#94a3b8' }
+        }
+      }
     }
-    return sum/N;
-  }
-  var target=1-TCF/100;
-  if(target<=0){document.getElementById('alerta2').textContent='La tasa CF no puede ser >= 100%.';alerta.style.display='block';res.style.display='none';return;}
-  var lo=0, hi=10;
-  for(var iter=0;iter<100;iter++){
-    var mid=(lo+hi)/2;
-    if(vpRatio(mid)>target) lo=mid; else hi=mid;
-  }
-  var TNA=mid*12*100;
-  document.getElementById('tna-value').textContent=TNA.toFixed(2)+'%';
-  document.getElementById('tna-sub').textContent='Tasa CF '+TCF.toFixed(2)+'% | '+N+' cuotas | '+D+' dias acreditacion';
-  res.style.display='block';
+  });
 }
+
+function switchChart(mode, btn) {
+  currentChart = mode;
+  document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (lastResult) renderChart(lastResult);
+}
+
+/* ─── Table ─── */
+function renderTable(res) {
+  const head = document.getElementById('tbl-head');
+  head.innerHTML = '<th>Concepto</th>';
+  res.years.forEach(y => {
+    const th = document.createElement('th');
+    th.textContent = y.y === 0 ? 'Año 0' : 'Año ' + y.y;
+    head.appendChild(th);
+  });
+
+  const ROWS = [
+    { lbl: 'Ventas (cuotas)',        key: 'ventas',    cls: '' },
+    { lbl: 'Otros Ingresos',         key: 'gymPadel',  cls: 't-green' },
+    { lbl: 'Costo de Ventas',        key: 'costoVtas', cls: 't-red', par: true },
+    { lbl: 'INGRESOS NETOS',         key: 'ingNetos',  cls: 't-bold', sep: true },
+    { lbl: 'Masa Salarial',          key: 'masaSal',   cls: '', par: true },
+    { lbl: 'Alquiler',               key: 'alq',       cls: '', par: true },
+    { lbl: 'Gastos Operativos',      key: 'gop',       cls: '', par: true },
+    { lbl: 'Leasing Máquinas',       key: 'leas',      cls: '', par: true },
+    { lbl: 'TOTAL EGRESOS',          key: 'egresos',   cls: 't-bold t-red', par: true, sep: true },
+    { lbl: 'EBITDA',                 key: 'ebitda',    cls: 't-bold', ebitdaRow: true, sep: true },
+    { lbl: 'EBITDA Acumulado',       key: 'ebitdaAcum',cls: 't-blue' },
+    { lbl: 'Inversión Inicial',      key: 'inversion', cls: 't-red', par: true, sep: true },
+  ];
+
+  const tbody = document.getElementById('tbl-body');
+  tbody.innerHTML = '';
+
+  ROWS.forEach(row => {
+    const tr = document.createElement('tr');
+    if (row.sep) tr.classList.add('sep-top');
+
+    const td0 = document.createElement('td');
+    td0.textContent = row.lbl;
+    tr.appendChild(td0);
+
+    res.years.forEach(y => {
+      const td  = document.createElement('td');
+      let val   = y[row.key] ?? 0;
+      let cls   = row.cls || '';
+
+      if (row.ebitdaRow) cls = 't-bold ' + (val < 0 ? 't-red' : 't-green');
+      if (row.key === 'ebitdaAcum' && val < 0) cls = 't-red';
+
+      td.className = cls;
+      if (y.y === 0) tr.classList.add('yr0');
+
+      if (val === 0) {
+        td.className = 't-zero';
+        td.textContent = '—';
+      } else {
+        const disp = fmtFull(val);
+        td.textContent = (row.par && val > 0) ? '(' + disp + ')' : disp;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+
+    // EBITDA % row
+    if (row.ebitdaRow) {
+      const tr2 = document.createElement('tr');
+      const t0  = document.createElement('td');
+      t0.textContent = 'EBITDA %';
+      t0.className = 't-muted';
+      tr2.appendChild(t0);
+      res.years.forEach(y => {
+        const td = document.createElement('td');
+        td.className = 't-muted';
+        td.textContent = y.y === 0 ? '—' : (res.ebitdaPct * 100).toFixed(0) + '%';
+        tr2.appendChild(td);
+      });
+      tbody.appendChild(tr2);
+    }
+  });
+}
+
+/* ─── Reset ─── */
+const DEFAULTS = {
+  socios: 1800, precioMensual: 95041, masaSalarial: 600000000, alquiler: 208800000,
+  gastosOp: 240000000, leasing: 0, obraCivil: 1200000000, maquinas: 700000000,
+  marketing: 275000000, usdRate: 1000
+};
+
+function resetDefaults() {
+  Object.entries(DEFAULTS).forEach(([id, n]) => setVal(id, n));
+  document.getElementById('pctGym').value    = 9.66;
+  document.getElementById('pctCosto').value  = 14;
+  document.getElementById('tasaRef').value   = 8;
+  document.getElementById('horizonte').value = 10;
+  ['tasa-val','tasa-disp'].forEach(id => document.getElementById(id).textContent =
+    id === 'tasa-disp' ? '8%' : '8');
+  ['horiz-val','horiz-disp'].forEach(id => document.getElementById(id).textContent =
+    id === 'horiz-disp' ? '10 años' : '10');
+  if (costoMode !== 'anual') {
+    costoMode = 'anual';
+    document.querySelectorAll('.seg').forEach((b,i) => b.classList.toggle('active', i===1));
+    CLIDS.forEach((lid, i) => document.getElementById(lid).textContent = CLBLS[i] + ' — Anual');
+  }
+  if (usdMode) toggleUSD();
+  updateInvTotal();
+  runModel();
+}
+
+/* ─── Events ─── */
+['socios','precioMensual','masaSalarial','alquiler','gastosOp','leasing',
+ 'obraCivil','maquinas','marketing'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('blur',    () => { formatMoneyEl(el); updateInvTotal(); runModel(); });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') { formatMoneyEl(el); updateInvTotal(); runModel(); } });
+});
+
+document.querySelectorAll('input[type="number"]').forEach(el => {
+  el.addEventListener('blur', runModel);
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') runModel(); });
+});
+
+document.querySelectorAll('input[type="range"]').forEach(el => {
+  el.addEventListener('change', runModel);
+});
+
+/* ─── Init ─── */
+updateInvTotal();
+runModel();
 </script>
 </body>
 </html>
