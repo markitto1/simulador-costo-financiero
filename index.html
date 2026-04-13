@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador Financiero — Gimnasio</title>
+  <title>Análisis de Proyectos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -122,11 +122,12 @@
     ════════════════════════════════════════ */
     .layout {
       display: grid;
-      grid-template-columns: 348px 1fr;
+      grid-template-columns: 320px 1fr;
       gap: 20px;
-      padding: 20px 28px 32px;
-      max-width: 1440px;
+      padding: 20px 24px 32px;
+      max-width: 100%;
       margin: 0 auto;
+      min-width: 0;
     }
 
     /* ════════════════════════════════════════
@@ -616,10 +617,18 @@
     /* ════════════════════════════════════════
        RESPONSIVE
     ════════════════════════════════════════ */
-    @media (max-width: 1140px) {
+    @media (max-width: 1100px) {
       .layout { grid-template-columns: 1fr; }
       .kpi-grid { grid-template-columns: repeat(3, 1fr); }
       .summary-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .layout { padding: 12px 12px 24px; gap: 14px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .summary-row { grid-template-columns: 1fr; }
+      .header { padding: 0 16px; }
+      .header-title { font-size: 13px; }
+      .field-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -630,7 +639,7 @@
   <div class="header-brand">
     <div class="header-logo">🏋️</div>
     <div>
-      <div class="header-title">Simulador Financiero</div>
+      <div class="header-title">Análisis de Proyectos</div>
       <div class="header-sub">Proyección · Rentabilidad · Sensibilidad</div>
     </div>
   </div>
