@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Simulador CF — Megatlon</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Arial Black',Arial,sans-serif;background:#f1f1f1;color:#111;-webkit-text-size-adjust:100%;}
+    .header{background:#000;padding:16px 20px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:12px;}
+    .header-logo{font-size:1.25rem;font-weight:900;color:#fff;letter-spacing:2px;text-transform:uppercase;}
+    .header-sep{width:1px;height:20px;background:#444;}
+    .header-title{font-size:.65rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1.5px;}
+    .wrap{padding:20px 16px 48px;}
+    .tabs{display:-webkit-flex;display:flex;gap:0;margin-bottom:20px;border:2px solid #000;}
+    .tab{-webkit-flex:1;flex:1;text-align:center;padding:12px 6px;font-size:.7rem;font-weight:900;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:#000;text-decoration:none;background:#fff;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;}
+    .tab:first-child{border-right:1px solid #000;}
+    .tab.active{background:#000;color:#fff;}
+    .panel{display:none;}
+    .panel.active{display:block;}
+    .card{background:#fff;border:2px solid #000;padding:20px;margin-bottom:16px;}
+    .card-title{font-size:.6rem;font-weight:900;color:#000;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid #000;}
+    .field{margin-bottom:16px;}
+    .field label{display:block;font-size:.6rem;font-weight:900;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+    .field .hint{font-size:.65rem;color:#999;margin-top:4px;font-family:Arial,sans-serif;font-weight:400;}
+    .irow{display:-webkit-flex;display:flex;-webkit-align-items:stretch;align-items:stretch;}
+    .fix{background:#f1f1f1;padding:0 12px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;font-weight:900;color:#555;font-size:.85rem;border:2px solid #000;-webkit-flex-shrink:0;flex-shrink:0;}
+    .fix.l{border-right:none;}
+    .fix.r{border-left:none;}
+    input[type=text]{height:48px;padding:0 14px;border:2px solid #000;font-size:1.1rem;font-weight:900;color:#000;background:#fff;-webkit-appearance:none;appearance:none;border-radius:0;width:100%;font-family:'Arial Black',Arial,sans-serif;}
+    .irow input[type=text]{-webkit-flex:1;flex:1;min-width:0;}
+    input[type=text]:focus{outline:none;background:#f8f8f8;}
+    .btn-calc{display:block;width:100%;padding:16px;margin-top:18px;background:#000;color:#fff;font-size:.8rem;font-weight:900;text-align:center;letter-spacing:2px;text-transform:uppercase;text-decoration:none;-webkit-tap-highlight-color:transparent;cursor:pointer;border:2px solid #000;}
+    .btn-calc:active{background:#333;}
+    .btn-tna{background:#fff;color:#000;}
+    .btn-tna:active{background:#f1f1f1;}
+    .alert{display:none;margin-top:12px;padding:11px 14px;background:#fff0f0;border:2px solid #000;color:#c00;font-size:.75rem;font-family:Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+    .boxes{display:-webkit-flex;display:flex;gap:0;margin-bottom:16px;border:2px solid #000;}
+    .box{-webkit-flex:1;flex:1;padding:14px 8px;text-align:center;}
+    .box+.box{border-left:2px solid #000;}
+    .box .bl{font-size:.55rem;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#777;margin-bottom:6px;}
+    .box .bv{font-size:.88rem;font-weight:900;line-height:1.2;color:#000;}
+    .box .bs{font-size:.6rem;color:#999;margin-top:3px;font-family:Arial,sans-serif;font-weight:400;}
+    .box-mid{background:#000;}
+    .box-mid .bl{color:#777;}
+    .box-mid .bv{color:#fff;}
+    .box-mid .bs{color:#aaa;}
+    .twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    table{width:100%;border-collapse:collapse;font-size:.78rem;min-width:380px;}
+    th{background:#000;color:#fff;font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.5px;padding:9px 10px;text-align:right;}
+    th:first-child{text-align:center;}
+    td{padding:8px 10px;text-align:right;border-bottom:1px solid #e8e8e8;font-family:Arial,sans-serif;}
+    td:first-child{text-align:center;font-weight:900;color:#000;font-family:'Arial Black',Arial,sans-serif;}
+    tfoot td{font-weight:900;background:#f1f1f1;border-top:2px solid #000;font-family:'Arial Black',Arial,sans-serif;}
+    .r{color:#c00;} .g{color:#007a33;}
+    .formula{background:#f1f1f1;border:2px solid #e0e0e0;padding:12px 14px;margin-top:14px;font-size:.7rem;color:#555;line-height:1.8;font-family:Arial,sans-serif;}
+    .formula b{color:#000;font-family:'Arial Black',Arial,sans-serif;}
+    .tna-result{display:none;margin-top:16px;}
+    .tna-big{background:#000;padding:24px;text-align:center;}
+    .tna-label{font-size:.6rem;font-weight:900;color:#aaa;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+    .tna-value{font-size:3rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-1px;}
+    .tna-unit{font-size:1.2rem;color:#aaa;margin-left:4px;}
+    .tna-sub{font-size:.7rem;color:#777;margin-top:10px;font-family:Arial,sans-serif;font-weight:400;}
+    #resultado{display:none;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">MEGATLON</div>
+  <div class="header-sep"></div>
+  <div class="header-title">Simulador de Costo Financiero</div>
+</div>
+
+<div class="wrap">
+
+  <div class="tabs">
+    <a class="tab active" href="javascript:switchTab('cf')">Calcular CF</a>
+    <a class="tab" href="javascript:switchTab('tna')">Calcular TNA</a>
+  </div>
+
+  <div class="panel active" id="panel-cf">
+    <div class="card">
+      <div class="card-title">Parametros</div>
+      <div class="field">
+        <label>Valor del Cupon</label>
+        <div class="irow">
+          <span class="fix l">$</span>
+          <input type="text" id="vc" inputmode="decimal" placeholder="10000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        </div>
+        <div class="hint">Monto total de la venta</div>
+      </div>
+      <div class="field">
+        <label>Cantidad de Cuotas</label>
+        <input type="text" id="cu" inputmode="numeric" placeholder="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <div class="hint">Numero de cuotas del cliente</div>
+      </div>
+      <div class="field">
+        <label>TNA Aplicada</label>
+        <div class="irow">
+          <input type="text" id="tn" inputmode="decimal" placeholder="45" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+          <span class="fix r">%</span>
+        </div>
+        <div class="hint">Tasa Nominal Anual del banco</div>
+      </div>
+      <div class="field">
+        <label>Dias de Acreditacion</label>
+        <div class="irow">
+          <input type="text" id="da" inputmode="numeric" placeholder="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+          <span class="fix r">dias</span>
+        </div>
+        <div class="hint">Dias hasta que el banco te acredita</div>
+      </div>
+      <a class="btn-calc" href="javascript:calcular()">Calcular Costo Financiero</a>
+      <div class="alert" id="alerta">Completa todos los campos con valores validos.</div>
+    </div>
+    <div id="resultado">
+      <div class="boxes">
+        <div class="box"><div class="bl">Cupon</div><div class="bv" id="r-cupon">-</div><div class="bs">Total venta</div></div>
+        <div class="box box-mid"><div class="bl">Costo CF</div><div class="bv" id="r-costo">-</div><div class="bs" id="r-cpct">-</div></div>
+        <div class="box"><div class="bl">Neto</div><div class="bv" id="r-neto">-</div><div class="bs" id="r-npct">-</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Detalle por Cuota</div>
+        <div class="twrap">
+          <table>
+            <thead><tr><th>Cuota</th><th>Vencim.</th><th>Dias antic.</th><th>Valor cuota</th><th>Costo CF</th><th>Neto cuota</th></tr></thead>
+            <tbody id="tbody"></tbody>
+            <tfoot id="tfoot"></tfoot>
+          </table>
+        </div>
+        <div class="formula">
+          <b>Modelo valor presente:</b><br>
+          VP(i) = (Valor/N) / (1 + TNA/12)<sup>max(0, (30&times;i &minus; D)/30)</sup><br>
+          Costo total = Valor &minus; &Sigma; VP(i)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-tna">
+    <div class="card">
+      <div class="card-title">Parametros</div>
+      <div class="field">
+        <label>Tasa de Costo Financiero</label>
+        <div class="irow">
+          <input type="text" id="tcf" inputmode="decimal" placeholder="3.5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+          <span class="fix r">%</span>
+        </div>
+        <div class="hint">Porcentaje total que cobra el banco sobre el cupon</div>
+      </div>
+      <div class="field">
+        <label>Cantidad de Cuotas</label>
+        <input type="text" id="cu2" inputmode="numeric" placeholder="6" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <div class="hint">Numero de cuotas del cliente</div>
+      </div>
+      <div class="field">
+        <label>Dias de Acreditacion</label>
+        <div class="irow">
+          <input type="text" id="da2" inputmode="numeric" placeholder="10" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+          <span class="fix r">dias</span>
+        </div>
+        <div class="hint">Dias hasta que el banco te acredita</div>
+      </div>
+      <a class="btn-calc btn-tna" href="javascript:calcularTNA()">Calcular TNA Equivalente</a>
+      <div class="alert" id="alerta2">Completa todos los campos con valores validos.</div>
+    </div>
+    <div class="tna-result" id="tna-result">
+      <div class="tna-big">
+        <div class="tna-label">TNA Equivalente</div>
+        <div class="tna-value" id="tna-value">-</div>
+        <div class="tna-sub" id="tna-sub">-</div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Como se Calcula</div>
+        <div class="formula">
+          <b>Modelo:</b> VP/Valor = (1/N) &times; &Sigma; (1 + TNA/12)<sup>&minus;max(0,(30i&minus;D)/30)</sup> = 1 &minus; Tasa CF%<br><br>
+          Se resuelve por biseccion numerica: se encuentra la tasa mensual r<sub>m</sub> tal que la ecuacion se cumple, luego TNA = r<sub>m</sub> &times; 12.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('panel-'+t).classList.add('active');
+  var tabs=document.querySelectorAll('.tab');
+  if(t==='cf')tabs[0].classList.add('active');else tabs[1].classList.add('active');
+}
+function fmtP(n){var p=n.toFixed(2).split('.');p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');return '$ '+p[0]+','+p[1];}
+function leer(id){return parseFloat(document.getElementById(id).value.trim().replace(',','.'));}
+function leerInt(id){return parseInt(document.getElementById(id).value.trim(),10);}
+
+function calcular(){
+  var V=leer('vc'),N=leerInt('cu'),TN=leer('tn'),D=leerInt('da');
+  var alerta=document.getElementById('alerta'),res=document.getElementById('resultado');
+  if(isNaN(V)||V<=0||isNaN(N)||N<1||isNaN(TN)||TN<0||isNaN(D)||D<0){alerta.style.display='block';res.style.display='none';return;}
+  alerta.style.display='none';
+  var vc=V/N, rm=(TN/100)/12, VP=0, filas='';
+  for(var i=1;i<=N;i++){
+    var dv=30*i, da=Math.max(0,dv-D);
+    var ti=da/30;
+    var pv=vc/Math.pow(1+rm,ti);
+    var cf=vc-pv;
+    VP+=pv;
+    filas+='<tr><td>'+i+'</td><td>'+dv+'d</td><td>'+da+'d</td><td>'+fmtP(vc)+'</td><td class="r">'+fmtP(cf)+'</td><td class="g">'+fmtP(pv)+'</td></tr>';
+  }
+  var totalCF=V-VP, neto=VP;
+  document.getElementById('tbody').innerHTML=filas;
+  document.getElementById('tfoot').innerHTML='<tr><td>TOTAL</td><td></td><td></td><td>'+fmtP(V)+'</td><td class="r">'+fmtP(totalCF)+'</td><td class="g">'+fmtP(neto)+'</td></tr>';
+  document.getElementById('r-cupon').innerHTML=fmtP(V);
+  document.getElementById('r-costo').innerHTML=fmtP(totalCF);
+  document.getElementById('r-cpct').innerHTML=((totalCF/V)*100).toFixed(2)+'% del total';
+  document.getElementById('r-neto').innerHTML=fmtP(neto);
+  document.getElementById('r-npct').innerHTML=((neto/V)*100).toFixed(2)+'% del total';
+  res.style.display='block';
+}
+
+function calcularTNA(){
+  var TCF=leer('tcf'),N=leerInt('cu2'),D=leerInt('da2');
+  var alerta=document.getElementById('alerta2'),res=document.getElementById('tna-result');
+  if(isNaN(TCF)||TCF<=0||isNaN(N)||N<1||isNaN(D)||D<0){alerta.style.display='block';res.style.display='none';return;}
+  alerta.style.display='none';
+  var hayDesc=false;
+  for(var i=1;i<=N;i++){if(30*i>D){hayDesc=true;break;}}
+  if(!hayDesc){document.getElementById('alerta2').textContent='Con esos dias de acreditacion el banco no cobra costo financiero.';alerta.style.display='block';res.style.display='none';return;}
+  function vpRatio(rm){
+    var sum=0;
+    for(var i=1;i<=N;i++){
+      var ti=Math.max(0,(30*i-D)/30);
+      sum+=1/Math.pow(1+rm,ti);
+    }
+    return sum/N;
+  }
+  var target=1-TCF/100;
+  if(target<=0){document.getElementById('alerta2').textContent='La tasa CF no puede ser >= 100%.';alerta.style.display='block';res.style.display='none';return;}
+  var lo=0, hi=10;
+  for(var iter=0;iter<100;iter++){
+    var mid=(lo+hi)/2;
+    if(vpRatio(mid)>target) lo=mid; else hi=mid;
+  }
+  var TNA=mid*12*100;
+  document.getElementById('tna-value').textContent=TNA.toFixed(2)+'%';
+  document.getElementById('tna-sub').textContent='Tasa CF '+TCF.toFixed(2)+'% | '+N+' cuotas | '+D+' dias acreditacion';
+  res.style.display='block';
+}
+</script>
+</body>
+  </html>
