@@ -55,6 +55,7 @@
       font-size: 13px;
       line-height: 1.5;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     /* ════════════════════════════════════════
@@ -122,9 +123,9 @@
     ════════════════════════════════════════ */
     .layout {
       display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 20px;
-      padding: 20px 24px 32px;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 16px;
+      padding: 16px 20px 28px;
       max-width: 100%;
       margin: 0 auto;
       min-width: 0;
@@ -327,7 +328,7 @@
     /* ════════════════════════════════════════
        MAIN
     ════════════════════════════════════════ */
-    .main { display: flex; flex-direction: column; gap: 14px; }
+    .main { display: flex; flex-direction: column; gap: 14px; min-width: 0; overflow: hidden; }
 
     /* ── USD bar ── */
     .usd-bar {
@@ -412,10 +413,11 @@
       border-radius: var(--radius);
       border: 1px solid var(--border);
       box-shadow: var(--shadow-sm);
-      padding: 14px 14px 12px;
+      padding: 12px 12px 10px;
       position: relative;
       overflow: hidden;
       transition: box-shadow .2s;
+      min-width: 0;
     }
     .kpi:hover { box-shadow: var(--shadow); }
 
@@ -442,11 +444,14 @@
     }
 
     .kpi-val {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 900;
-      letter-spacing: -1px;
+      letter-spacing: -.5px;
       line-height: 1;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .kpi-sub {
